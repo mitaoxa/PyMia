@@ -19,5 +19,20 @@ for f in files:
 		if not y in Y:
 			Y.append(y)
 
-print '===== X =====',str(len(X)),'\n',sorted(X)
-print '===== Y =====',str(len(Y)),'\n',sorted(Y)
+print '===== X ====='#,str(len(X)),'\n',X,'\n',sorted(X)
+
+nX, preX=1, 0
+disX, disY=[],[]
+count=0
+for x in sorted(X):
+	n=int(round(1000*(float(x)-preX)))
+	if not n == nX and not preX == 0:
+		count=count+1
+		if not n in disX:
+			disX.append(n)
+			print n
+	preX=float(x)
+
+print 'total: ',str(count),'/',len(X)
+
+#print '===== Y =====',str(len(Y)),'\n',sorted(Y)
