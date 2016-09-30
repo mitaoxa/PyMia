@@ -1,10 +1,25 @@
-from __future__ import division
 from Tkinter import *
 import Tkinter as tk
 import ttk as ttk
 import os
 import tkFileDialog
+import shapefile as shp
+import csv
+from collections import namedtuple
+import mapXY
 
+def getZ():
+#	pZ=tkFileDialog.askopenfilename()
+	pZ='output_Z.txt'
+	with open(pZ, 'r') as fin:
+		csvreader=csv.reader(fin, delimiter=',')
+		Header=next(csvreader)
+		Data=namedtuple('Header', ','.join(Header))
+		Z={}
+		for row in csvreader:
+			d = Data._make(row)
+			Z[int(float(d.ID)-1)]=float(d.Z)
+	return Z
 def getFiles(path):
 	for root, dirnames, filenames in os.walk(path):
 		files=filenames
@@ -18,8 +33,8 @@ def Calc_(Mt, At, E, path, filename, SS):
 		lines=file.read().splitlines()
 	detail=lines[3].split()
 	suit['#']=int(filename[:4])
-	suit['X']=detail[2]
-	suit['Y']=detail[1]
+	suit['X']=mapXY.mapX[float(detail[2])*1000]
+	suit['Y']=mapXY.mapY[int(round(float(detail[1])*10000))]
 #	suit['location']=location
 	count=5
 	for line in lines[5:]:
@@ -101,13 +116,95 @@ def Analsys(path, E, SS):
 		index=int(f[:4])
 		record[index-1]=suit
 	SS.set(' Calc_ finished')
+	#########################################################
+	#			calc_ end			#
+	#########################################################
 
-	output=os.path.join(path, 'output')
+	w=shp.Writer(shp.POLYGON)
+	w.autoBalance=1
+	
+	w.field('ID', 'N')
+	w.field('X', 'F', 10, 8)
+	w.field('Y', 'F', 10, 8)
+	w.field('suitI', 'F', 10, 8)
+	
+	Z=getZ()
+	count=0
+	for key, r in record.iteritems():
+		if Z[key] >=500:
+			suitI=0
+			count=count+1
+		else:
+			suitI=(r['TsuitI']*r['Rsuit'])/100
+		X=r['X']/1000.0
+		Y=r['Y']/10000.0
+		LU=[X-0.025, Y+0.023]
+		RU=[X+0.025, Y+0.023]
+		RD=[X+0.025, Y-0.023]
+		LD=[X-0.025, Y-0.023]
+		par=[LU, RU, RD, LD, LU]
+		w.poly(parts=[par])
+		w.record((r['#']-1), X, Y, suitI)
+	
+	print 'More then 500m: ',str(count)
+	
+	output=os.path.join(path, 'shapefile')
 	if not os.path.exists(output):
 		os.makedirs(output)
 
-	SS.set(' output: '+output+'/suit.csv')
+	filename=path[len(path)-4:]+'.shp'
+	shpfile=os.path.join(output, filename)
+	
+	SS.set('file: '+shpfile)
+	w.save(shpfile)
 
+        pic=os.path.join(path, 'pic')
+        if not os.path.exists(pic):
+                os.makedirs(pic)
+
+        lmax,lmin,amax,amin=0,999,0,999
+        for key,r in record.iteritems():
+                if float(r['X'])>lmax:
+                        lmax=float(r['X'])
+                if float(r['X'])<lmin:
+                        lmin=float(r['X'])
+                if float(r['Y'])>amax:
+                        amax=float(r['Y'])
+                if float(r['Y'])<amin:
+                        amin=float(r['Y'])
+
+        print 'long <',lmax,'>, <',lmin,'>',str(round((lmax-lmin)/0.049))
+        print 'lat <', amax,'>,<',amin,'>',str(round((amax-amin)/0.045))
+
+        nl=int(round((lmax-lmin)/0.049))+1
+        na=int(round((amax-amin)/0.045))+1
+        unit=20
+        im=Image.new('RGBA', (unit*nl,unit*na))
+        D=ImageDraw.Draw(im)
+
+        colorRamp={10:(62,168,96),9:(79,172,102),8:(102,183,116),7:(125,192,121),6:(132,201,118),5:(147,212,130),4:(165,219,131),3:(186,226,137),2:(199,233,139),1:(211,238,145),0:(245,242,189)}
+        flag=True
+        for key, r in record.iteritems():
+                suitI=int((r['TsuitI']*r['Rsuit'])/1000)
+                if suitI == 0:
+                        color=colorRamp[0]
+                else:
+                        color=colorRamp[suitI]
+                X=int(round((float(r['X'])-lmin)/0.049))
+                Y=int(round((amax-float(r['Y']))/0.045))
+                if flag==True:
+                        flag=False
+                        print '-> ',X,', ',Y,'(',r['X'],',',r['Y']
+
+                D.rectangle((X*unit,Y*unit,(X+1)*unit, (Y+1)*unit),fill=color)
+
+        filename=path[len(path)-4:]+'_suitI.png'
+	path=os.path.join(pic, filename)
+	print 'pic: ',path
+	im.save(path)
+
+
+"""
 	count=0
 	with open(os.path.join(output, 'suit.csv'), 'w+') as file:
 		file.write('FID,X,Y,TsuitI,TsuitII,Rsuit,totalRain,suitI,suitII,tmp\n')
@@ -130,14 +227,13 @@ def Analsys(path, E, SS):
 			file.write('<'+str(key)+'>: '+str(value)+'\n')
 	print 'totol record: '+str(len(record))
 
-	
+	"""
 def Browse(E, SS):
 	path=tkFileDialog.askdirectory()
 	E.delete(0, END)
 	E.insert(0, path)
 	
-	files=getFiles(path)
-	print len(files)
-	SS.set(' '+str(len(files))+' files in selected')
+	print str(len(mapXY.mapX)),'/',str(len(mapXY.mapY))
+	
 
 

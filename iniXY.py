@@ -57,8 +57,8 @@ for key, value in mapY.iteritems():
 	if not value in disY:
 		disY.append(value)
 
-print 'total X= ',str(len(disX))
-print 'total y= ',str(len(disY))
+print 'total X= ',str(len(disX)),'/',str(len(mapX))
+print 'total y= ',str(len(disY)),'/',str(len(mapY))
 
 with open('mapX.txt','w+') as file:
 	for key, value in mapX.iteritems():
@@ -66,6 +66,8 @@ with open('mapX.txt','w+') as file:
 with open('mapY.txt','w+') as file:
 	for key, value in mapY.iteritems():
 		file.write(str(key)+' '+str(value)+'\n')
-
+with open('mapXY.py', 'w+') as file:
+	file.write('mapX='+str(mapX)+'\n')
+	file.write('mapY='+str(mapY)+'\n')
 #print sorted(mapX)
 

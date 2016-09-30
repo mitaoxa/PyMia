@@ -1,25 +1,10 @@
+from __future__ import division
 from Tkinter import *
 import Tkinter as tk
 import ttk as ttk
 import os
 import tkFileDialog
-import shapefile as shp
-import csv
-from collections import namedtuple
-import mapXY
 
-def getZ():
-#	pZ=tkFileDialog.askopenfilename()
-	pZ='output_Z.txt'
-	with open(pZ, 'r') as fin:
-		csvreader=csv.reader(fin, delimiter=',')
-		Header=next(csvreader)
-		Data=namedtuple('Header', ','.join(Header))
-		Z={}
-		for row in csvreader:
-			d = Data._make(row)
-			Z[int(float(d.ID)-1)]=float(d.Z)
-	return Z
 def getFiles(path):
 	for root, dirnames, filenames in os.walk(path):
 		files=filenames
@@ -33,8 +18,8 @@ def Calc_(Mt, At, E, path, filename, SS):
 		lines=file.read().splitlines()
 	detail=lines[3].split()
 	suit['#']=int(filename[:4])
-	suit['X']=mapXY.mapX[float(detail[2])*1000]
-	suit['Y']=mapXY.mapY[int(round(float(detail[1])*10000))]
+	suit['X']=detail[2]
+	suit['Y']=detail[1]
 #	suit['location']=location
 	count=5
 	for line in lines[5:]:
@@ -116,53 +101,13 @@ def Analsys(path, E, SS):
 		index=int(f[:4])
 		record[index-1]=suit
 	SS.set(' Calc_ finished')
-	#########################################################
-	#			calc_ end			#
-	#########################################################
 
 	output=os.path.join(path, 'output')
 	if not os.path.exists(output):
 		os.makedirs(output)
-	
-	w=shp.Writer(shp.POLYGON)
-	w.autoBalance=1
-	
-	w.field('ID', 'N')
-	w.field('X', 'F', 10, 8)
-	w.field('Y', 'F', 10, 8)
-	w.field('suitI', 'F', 10, 8)
-	
-	Z=getZ()
-	count=0
-	for key, r in record.iteritems():
-		if Z[key] >=500:
-			suitI=0
-			count=count+1
-		else:
-			suitI=(r['TsuitI']*r['Rsuit'])/100
-		X=r['X']/1000.0
-		Y=r['Y']/10000.0
-		LU=[X-0.025, Y+0.023]
-		RU=[X+0.025, Y+0.023]
-		RD=[X+0.025, Y-0.023]
-		LD=[X-0.025, Y-0.023]
-		par=[LU, RU, RD, LD, LU]
-		w.poly(parts=[par])
-		w.record((r['#']-1), X, Y, suitI)
-	
-	print 'More then 500m: ',str(count)
-	
-	output=os.path.join(path, 'shapefile')
-	if not os.path.exists(output):
-		os.makedirs(output)
 
-	filename=path[len(path)-4:]+'.shp'
-	shpfile=os.path.join(output, filename)
-	
-	SS.set('file: '+shpfile)
-	w.save(shpfile)
+	SS.set(' output: '+output+'/suit.csv')
 
-"""
 	count=0
 	with open(os.path.join(output, 'suit.csv'), 'w+') as file:
 		file.write('FID,X,Y,TsuitI,TsuitII,Rsuit,totalRain,suitI,suitII,tmp\n')
@@ -185,13 +130,14 @@ def Analsys(path, E, SS):
 			file.write('<'+str(key)+'>: '+str(value)+'\n')
 	print 'totol record: '+str(len(record))
 
-	"""
+	
 def Browse(E, SS):
 	path=tkFileDialog.askdirectory()
 	E.delete(0, END)
 	E.insert(0, path)
 	
-	print str(len(mapXY.mapX)),'/',str(len(mapXY.mapY))
-	
+	files=getFiles(path)
+	print len(files)
+	SS.set(' '+str(len(files))+' files in selected')
 
 
