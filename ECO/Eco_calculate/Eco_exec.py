@@ -5,7 +5,7 @@ from ttk import *
 import ttk as ttk
 import tkFileDialog
 import os
-import Eco_calc_shp as eco
+import Eco_calc as eco
 
 def Browse():
 	eco.Browse(e1, SS)

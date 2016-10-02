@@ -3,4 +3,4 @@
 # git remote add origin https://github.com/mitaoxa/PyMia.git
 # git push origin master
 
-# git fetch origin
+# git pull origin

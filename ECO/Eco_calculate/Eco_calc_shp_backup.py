@@ -6,7 +6,6 @@ import tkFileDialog
 import shapefile as shp
 import csv
 from collections import namedtuple
-import Image, ImageDraw
 import mapXY
 
 def getZ():
@@ -34,8 +33,8 @@ def Calc_(Mt, At, E, path, filename, SS):
 		lines=file.read().splitlines()
 	detail=lines[3].split()
 	suit['#']=int(filename[:4])
-	suit['X']=mapXY.mapX[float(detail[2])*1000]/1000.0
-	suit['Y']=mapXY.mapY[int(round(float(detail[1])*10000))]/10000.0
+	suit['X']=mapXY.mapX[float(detail[2])*1000]
+	suit['Y']=mapXY.mapY[int(round(float(detail[1])*10000))]
 #	suit['location']=location
 	count=5
 	for line in lines[5:]:
@@ -117,14 +116,17 @@ def Analsys(path, E, SS):
 		index=int(f[:4])
 		record[index-1]=suit
 	SS.set(' Calc_ finished')
-	print 'temp'
-	print 'calc_ end, output shapfile'
 	#########################################################
 	#			calc_ end			#
 	#########################################################
-	"""
+
+	output=os.path.join(path, 'output')
+	if not os.path.exists(output):
+		os.makedirs(output)
+	
 	w=shp.Writer(shp.POLYGON)
 	w.autoBalance=1
+	
 	w.field('ID', 'N')
 	w.field('X', 'F', 10, 8)
 	w.field('Y', 'F', 10, 8)
@@ -159,56 +161,7 @@ def Analsys(path, E, SS):
 	
 	SS.set('file: '+shpfile)
 	w.save(shpfile)
-	print 'shapfile output success: ',shpfile
 
-	#################
-	# shapfile End	#
-	#################
-	"""
-        pic=os.path.join(path, 'pic')
-        if not os.path.exists(pic):
-                os.makedirs(pic)
-
-        lmax,lmin,amax,amin=0,999,0,999
-        for key,r in record.iteritems():
-                if float(r['X'])>lmax:
-                        lmax=float(r['X'])
-                if float(r['X'])<lmin:
-                        lmin=float(r['X'])
-                if float(r['Y'])>amax:
-                        amax=float(r['Y'])
-                if float(r['Y'])<amin:
-                        amin=float(r['Y'])
-
-        print 'long <',lmax,'>, <',lmin,'>',str(round((lmax-lmin)/0.049))
-        print 'lat <', amax,'>,<',amin,'>',str(round((amax-amin)/0.045))
-
-        nl=int(round((lmax-lmin)/0.049))+1
-        na=int(round((amax-amin)/0.045))+1
-        unit=20
-        im=Image.new('RGBA', (unit*nl,unit*na))
-        D=ImageDraw.Draw(im)
-	
-        colorRamp={10:(62,168,96),9:(79,172,102),8:(102,183,116),7:(125,192,121),6:(132,201,118),5:(147,212,130),4:(165,219,131),3:(186,226,137),2:(199,233,139),1:(211,238,145),0:(245,242,189)}
-        flag=True
-        for key, r in record.iteritems():
-                suitI=int((r['TsuitI']*r['Rsuit'])/1000)
-                if suitI == 0:
-                        color=colorRamp[0]
-                else:
-                        color=colorRamp[suitI]
-                X=int(round((float(r['X'])-lmin)/0.049))
-                Y=int(round((amax-float(r['Y']))/0.045))
-                if flag==True:
-                        flag=False
-                        print '-> ',X,', ',Y,'(',r['X'],',',r['Y']
-
-                D.rectangle((X*unit,Y*unit,(X+1)*unit, (Y+1)*unit),fill=color)
-
-        filename=path[len(path)-4:]+'_suitI.png'
-	path=os.path.join(pic, filename)
-	print 'pic: ',path
-	im.save(path)
 """
 	count=0
 	with open(os.path.join(output, 'suit.csv'), 'w+') as file:
