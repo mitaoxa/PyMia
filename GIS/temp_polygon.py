@@ -1,9 +1,37 @@
+from Tkinter import *
 import tkFileDialog
 import os
 import shapefile as shp
+import Tkinter as tk
+from ttk import *
+import ttk as ttk
+import os
 
-path= tkFileDialog.askopenfilename()
+global path
+def Browse():
+	global path
+	print 'click browse'
+	path=tkFileDialog.askopenfilename()
+	e1.delete(0, END)
+	e1.insert(0, path)
 
+	
+win=tk.Tk()
+win.title('Template pic_')
+
+F1=ttk.LabelFrame(win, text=' Select File ')
+F1.grid(row=0, sticky=W, padx=10, pady=5, ipadx=5, ipady=5)
+
+L1=tk.Label(F1, text='Path: ')
+L1.grid(row=0, column=0)
+e1=tk.Entry(F1)
+e1.grid(row=0, column=1, padx=5, pady=5, ipadx=5, ipady=5)
+btn=tk.Button(F1, text='Browse..', command=Browse).grid(row=0, column=2)
+
+
+
+win.mainloop()	
+"""
 print 'path: <',path,'>'
 
 with open(path) as file:
@@ -66,4 +94,4 @@ path_shp=os.path.join(output,filename+'.shp')
 w.save(path_shp)
 
 print 'output file ',path_shp
-	
+"""	
