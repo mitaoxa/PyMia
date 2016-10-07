@@ -21,6 +21,154 @@ def getZ():
 			d = Data._make(row)
 			Z[int(float(d.ID)-1)]=float(d.Z)
 	return Z
+
+def DrawPic(nl, na, unit, colorRamp, record, lmin, amax, path, i):
+        im=Image.new('RGBA', (unit*nl,unit*na))
+        D=ImageDraw.Draw(im)
+
+        for key, r in record.iteritems():
+		if i=='I':
+			suit=int((r['TsuitI']*r['Rsuit'])/1000)
+		elif i=='II':
+                	suit=int((r['TsuitII']*r['Rsuit'])/1000)
+		elif i=='R':
+			suit=int(r['totalRain']/1000)
+			if suit >=5:
+				suit=5
+		elif i=='TAV':
+			suit=int(round(float(r['TAV'])))
+                if suit == 0:
+                        color=colorRamp[0]
+                else:
+                        color=colorRamp[suit]
+                X=int(round((float(r['X'])-lmin)/0.049))
+                Y=int(round((amax-float(r['Y']))/0.045))
+
+                D.rectangle((X*unit,Y*unit,(X+1)*unit, (Y+1)*unit),fill=color)
+	im.save(path)
+	print 'path: ',path
+
+def getPoint(path, record, SS):
+	output=os.path.join(path, 'shapefile')
+	if not os.path.exists(output):
+		os.makedirs(output)	
+	Z=getZ()
+
+	w=shp.Writer(shp.POINT)
+	w.autoBalance=1
+	w.field('ID', 'N')
+	w.field('X', 'F', 10, 8)
+	w.field('Y', 'F', 10, 8)
+	w.field('suitI', 'F', 10, 8)
+	w.field('suitII', 'F', 10, 8)
+	w.field('Rsuit', 'F', 10, 8)
+	w.field('TAV', 'F', 10, 8)
+	w.field('totalR', 'F', 10, 8)
+
+	count=0
+	for key, r in record.iteritems():
+		if Z[key] >=500:
+			suitI=0
+			suitII=0
+			count=count+1
+		else:
+			suitI=(r['TsuitI']*r['Rsuit'])/100
+			suitII=(r['TsuitII']*r['Rsuit'])/100
+		X=r['X']
+		Y=r['Y']
+		w.point(X, Y)
+		w.record((r['#']-1), X, Y, suitI, suitII, r['Rsuit'], r['TAV'], r['totalRain'])
+
+	filename=path[len(path)-4:]+'_point.shp'
+	shpfile=os.path.join(output, filename)
+	
+	SS.set('file: '+shpfile)
+	w.save(shpfile)
+	print 'shapfile output success: ',shpfile
+
+def getShp(path, record, SS):
+	output=os.path.join(path, 'shapefile')
+	if not os.path.exists(output):
+		os.makedirs(output)	
+	Z=getZ()
+
+	w=shp.Writer(shp.POLYGON)
+	w.autoBalance=1
+	w.field('ID', 'N')
+	w.field('X', 'F', 10, 8)
+	w.field('Y', 'F', 10, 8)
+	w.field('suitI', 'F', 10, 8)
+	w.field('suitII', 'F', 10, 8)
+	w.field('Rsuit', 'F', 10, 8)
+	w.field('TAV', 'F', 10, 8)
+	w.field('totalR', 'F', 10, 8)
+
+	count=0
+	for key, r in record.iteritems():
+		if Z[key] >=500:
+			suitI=0
+			suitII=0
+			count=count+1
+		else:
+			suitI=(r['TsuitI']*r['Rsuit'])/100
+			suitII=(r['TsuitII']*r['Rsuit'])/100
+		X=r['X']
+		Y=r['Y']
+		LU=[X-0.025, Y+0.023]
+		RU=[X+0.025, Y+0.023]
+		RD=[X+0.025, Y-0.023]
+		LD=[X-0.025, Y-0.023]
+		par=[LU, RU, RD, LD, LU]
+		w.poly(parts=[par])
+		w.record((r['#']-1), X, Y, suitI, suitII, r['Rsuit'], r['TAV'], r['totalRain'])
+
+	filename=path[len(path)-4:]+'_grid.shp'
+	shpfile=os.path.join(output, filename)
+	
+	SS.set('file: '+shpfile)
+	w.save(shpfile)
+	print 'shapfile output success: ',shpfile
+
+def getPic(path, record, SS):
+        pic=os.path.join(path, 'pic')
+        if not os.path.exists(pic):
+                os.makedirs(pic)
+
+        lmax,lmin,amax,amin=0,999,0,999
+        for key,r in record.iteritems():
+                if float(r['X'])>lmax:
+                        lmax=float(r['X'])
+                if float(r['X'])<lmin:
+                        lmin=float(r['X'])
+                if float(r['Y'])>amax:
+                        amax=float(r['Y'])
+                if float(r['Y'])<amin:
+                        amin=float(r['Y'])
+
+        print 'long <',lmax,'>, <',lmin,'>',str(round((lmax-lmin)/0.049))
+        print 'lat <', amax,'>,<',amin,'>',str(round((amax-amin)/0.045))
+
+        nl=int(round((lmax-lmin)/0.049))+1
+        na=int(round((amax-amin)/0.045))+1
+        unit=20	
+        colorRamp={10:(62,168,96),9:(79,172,102),8:(102,183,116),7:(125,192,121),6:(132,201,118),5:(147,212,130),4:(165,219,131),3:(186,226,137),2:(199,233,139),1:(211,238,145),0:(245,242,189)}
+	TAVcolorRamp={'min':(39,117,121),1:(35,122,150),2:(48,135,162),3:(64,152,175),4:(81,158,186),5:(74,154,181),6:(102,183,200),7:(124,196,208),8:(135,202,219),9:(158,211,229),10:(159,223,235),11:(179,239,247),12:(18,144,80),13:(23,146,79),14:(50,157,85),15:(62,168,96),16:(79,172,102),17:(102,183,116),18:(125,192,121),19:(132,201,118),20:(147,212,130),21:(165,219,131),22:(186,226,137),23:(199,233,139),24:(211,238,145),25:(245,242,189),26:(242,233,140),27:(250,211,132),28:(242,197,94),29:(239,179,69),30:(230,159,53),31:(233,134,41),32:(234,120,8),33:(223,82,39),34:(235,19,92),35:(176,5,50),36:(114,6,0),37:(163,107,152),38:(132,82,153),'max':(125,35,159)}
+	RcolorRamp={0:(194,82,60),1:(237,168,19),2:(198,247,0),3:(14,196,65),4:(22,109,138),5:(12,47,122)}
+
+	filenameI=path[len(path)-4:]+'_suitI.png'
+	pathI=os.path.join(pic, filenameI)
+	filenameII=path[len(path)-4:]+'_suitII.png'
+	pathII=os.path.join(pic, filenameII)
+	filenameR=path[len(path)-4:]+'_suitR.png'
+	pathR=os.path.join(pic, filenameR)
+	filenameTAV=path[len(path)-4:]+'_TAV.png'
+	pathTAV=os.path.join(pic, filenameTAV)
+	DrawPic(nl, na, unit, colorRamp, record, lmin, amax, pathI, 'I')
+	DrawPic(nl, na, unit, colorRamp, record, lmin, amax, pathII, 'II')
+	DrawPic(nl, na, unit, RcolorRamp, record, lmin, amax, pathR, 'R')
+	DrawPic(nl, na, unit, TAVcolorRamp, record, lmin, amax, pathTAV, 'TAV')
+
+	
 def getFiles(path):
 	for root, dirnames, filenames in os.walk(path):
 		files=filenames
@@ -36,6 +184,7 @@ def Calc_(Mt, At, E, path, filename, SS):
 	suit['#']=int(filename[:4])
 	suit['X']=mapXY.mapX[float(detail[2])*1000]/1000.0
 	suit['Y']=mapXY.mapY[int(round(float(detail[1])*10000))]/10000.0
+	suit['TAV']=float(detail[4])
 #	suit['location']=location
 	count=5
 	for line in lines[5:]:
@@ -122,93 +271,10 @@ def Analsys(path, E, SS):
 	#########################################################
 	#			calc_ end			#
 	#########################################################
-	"""
-	w=shp.Writer(shp.POLYGON)
-	w.autoBalance=1
-	w.field('ID', 'N')
-	w.field('X', 'F', 10, 8)
-	w.field('Y', 'F', 10, 8)
-	w.field('suitI', 'F', 10, 8)
-	
-	Z=getZ()
-	count=0
-	for key, r in record.iteritems():
-		if Z[key] >=500:
-			suitI=0
-			count=count+1
-		else:
-			suitI=(r['TsuitI']*r['Rsuit'])/100
-		X=r['X']/1000.0
-		Y=r['Y']/10000.0
-		LU=[X-0.025, Y+0.023]
-		RU=[X+0.025, Y+0.023]
-		RD=[X+0.025, Y-0.023]
-		LD=[X-0.025, Y-0.023]
-		par=[LU, RU, RD, LD, LU]
-		w.poly(parts=[par])
-		w.record((r['#']-1), X, Y, suitI)
-	
-	print 'More then 500m: ',str(count)
-	
-	output=os.path.join(path, 'shapefile')
-	if not os.path.exists(output):
-		os.makedirs(output)
+	getPic(path, record, SS)
+	getShp(path, record, SS)
+	getPoint(path, record, SS)
 
-	filename=path[len(path)-4:]+'.shp'
-	shpfile=os.path.join(output, filename)
-	
-	SS.set('file: '+shpfile)
-	w.save(shpfile)
-	print 'shapfile output success: ',shpfile
-
-	#################
-	# shapfile End	#
-	#################
-	"""
-        pic=os.path.join(path, 'pic')
-        if not os.path.exists(pic):
-                os.makedirs(pic)
-
-        lmax,lmin,amax,amin=0,999,0,999
-        for key,r in record.iteritems():
-                if float(r['X'])>lmax:
-                        lmax=float(r['X'])
-                if float(r['X'])<lmin:
-                        lmin=float(r['X'])
-                if float(r['Y'])>amax:
-                        amax=float(r['Y'])
-                if float(r['Y'])<amin:
-                        amin=float(r['Y'])
-
-        print 'long <',lmax,'>, <',lmin,'>',str(round((lmax-lmin)/0.049))
-        print 'lat <', amax,'>,<',amin,'>',str(round((amax-amin)/0.045))
-
-        nl=int(round((lmax-lmin)/0.049))+1
-        na=int(round((amax-amin)/0.045))+1
-        unit=20
-        im=Image.new('RGBA', (unit*nl,unit*na))
-        D=ImageDraw.Draw(im)
-	
-        colorRamp={10:(62,168,96),9:(79,172,102),8:(102,183,116),7:(125,192,121),6:(132,201,118),5:(147,212,130),4:(165,219,131),3:(186,226,137),2:(199,233,139),1:(211,238,145),0:(245,242,189)}
-        flag=True
-        for key, r in record.iteritems():
-                suitI=int((r['TsuitI']*r['Rsuit'])/1000)
-                if suitI == 0:
-                        color=colorRamp[0]
-                else:
-                        color=colorRamp[suitI]
-                X=int(round((float(r['X'])-lmin)/0.049))
-                Y=int(round((amax-float(r['Y']))/0.045))
-                if flag==True:
-                        flag=False
-                        print '-> ',X,', ',Y,'(',r['X'],',',r['Y']
-
-                D.rectangle((X*unit,Y*unit,(X+1)*unit, (Y+1)*unit),fill=color)
-
-        filename=path[len(path)-4:]+'_suitI.png'
-	path=os.path.join(pic, filename)
-	print 'pic: ',path
-	im.save(path)
 """
 	count=0
 	with open(os.path.join(output, 'suit.csv'), 'w+') as file:

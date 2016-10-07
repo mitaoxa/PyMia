@@ -20,9 +20,10 @@ def Browse():
 		os.makedirs(Dirshp)
 	print DirSave
 	for p in paths:
+		print 'start draw'
 		draw.Create_draw(p, DirSave)
+		print 'finish draw, and start shp'
 		shp.Create_shp(p, Dirshp)
-
 	Exit=tkMessageBox.askyesno("Loaction", 'Result: \n'+DirSave+'\n\nclick Yes to Exit')
 	if Exit:
 		win.quit()
