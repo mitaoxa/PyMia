@@ -36,7 +36,7 @@ def DrawPic(nl, na, unit, colorRamp, record, lmin, amax, path, i):
 			if suit >=5:
 				suit=5
 		elif i=='TAV':
-			suit=int(round(float(r['TAV'])))
+			suit=int(round(float(r['TAV'])/10))
                 if suit == 0:
                         color=colorRamp[0]
                 else:
@@ -166,7 +166,7 @@ def getPic(path, record, SS):
 	DrawPic(nl, na, unit, colorRamp, record, lmin, amax, pathI, 'I')
 	DrawPic(nl, na, unit, colorRamp, record, lmin, amax, pathII, 'II')
 	DrawPic(nl, na, unit, RcolorRamp, record, lmin, amax, pathR, 'R')
-	DrawPic(nl, na, unit, TAVcolorRamp, record, lmin, amax, pathTAV, 'TAV')
+	DrawPic(nl, na, unit, colorRamp, record, lmin, amax, pathTAV, 'TAV')
 
 	
 def getFiles(path):
@@ -184,7 +184,7 @@ def Calc_(Mt, At, E, path, filename, SS):
 	suit['#']=int(filename[:4])
 	suit['X']=mapXY.mapX[float(detail[2])*1000]/1000.0
 	suit['Y']=mapXY.mapY[int(round(float(detail[1])*10000))]/10000.0
-	suit['TAV']=float(detail[4])
+	TAV=float(detail[4])
 #	suit['location']=location
 	count=5
 	for line in lines[5:]:
@@ -193,6 +193,14 @@ def Calc_(Mt, At, E, path, filename, SS):
 		Rain.append(float(tmp[4]))
 		count=count+1
 	count=0
+	if TAV >= E['Topmin'] and TAV <= E['Topmax']:
+		suit['TAV']=100
+	elif TAV < E['Tmin'] or TAV > E['Tmax']:
+		suit['TAV']=0
+	elif TAV < E['Topmin'] and TAV >= E['Tmin']:
+		suit['TAV']=At['TLess']+Mt['TLess']*TAV
+	elif TAV > E['Topmax'] and TAV <= E['Tmax']:
+		suit['TAV']=At['TMore']+Mt['TMore']*TAV
 	while count<len(meanT):
 		temp=meanT[count]
 		if temp >= E['Topmin'] and temp <= E['Topmax']:
