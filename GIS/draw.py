@@ -36,9 +36,11 @@ def Create_draw(path,Dir):
 				X=X+unit
 				continue
 			temp=int(round(float(p)))
-			if temp<0:
+			if float(p)-temp <=0.01:
+				temp=temp-1
+			if temp<=0:
 				color=colorRamp['min']
-			elif temp>=38:
+			elif temp>=37:
 				color=colorRamp['max']
 			else:
 				color=colorRamp[temp+1]
