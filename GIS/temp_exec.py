@@ -7,6 +7,7 @@ import Tkinter as tk
 from ttk import *
 import ttk as ttk
 import draw, shp
+import Image, ImageDraw
 
 def Browse():
 	paths=tkFileDialog.askopenfilenames()
@@ -20,11 +21,19 @@ def Browse():
 	if not os.path.exists(Dirshp):
 		os.makedirs(Dirshp)
 	print DirSave
+	unit, row, col= 5, 360, 200 #5, 360, 200
+	im=Image.new('RGBA', (unit*col,unit*row))
+	lowerbound=15
 	for p in paths:
-		print 'start draw'
+		#print 'start draw',p
 		draw.Create_draw(p, DirSave)
-		print 'finish draw, and start shp'
-		shp.Create_shp(p, Dirshp)
+		draw.Combine_draw(p, im, lowerbound)
+	base=Image.open("base.png")
+	im.paste(base, (1*unit,1*unit), base)
+	im.save(str(lowerbound)+".png")
+
+	#	print 'finish draw, and start shp'
+	#	shp.Create_shp(p, Dirshp)
 	Exit=tkMessageBox.askyesno("Loaction", 'Result: \n'+DirSave+'\n\nclick Yes to Exit')
 	if Exit:
 		win.quit()
