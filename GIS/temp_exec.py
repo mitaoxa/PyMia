@@ -31,7 +31,9 @@ def Browse():
 		#print 'start draw',p
 		#draw.Create_draw(p, DirSave, lowerbound)
 		draw.Combine_draw(p, im, lowerbound)
-	base=Image.open("base.png")
+	base=Image.open("base_cut.png")
+	base_500=Image.open("500m.png")
+	im.paste((0, 0, 0, 0), (1*unit, 1*unit), base_500)
 	im.paste(base, (1*unit,1*unit), base)
 	im.save(str(lowerbound)+".png")
 	Exit=tkMessageBox.askyesno("Loaction", 'Result: \n'+DirSave+'\n\nclick Yes to Exit')

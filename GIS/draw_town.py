@@ -13,7 +13,7 @@ def DrawDetail(points, D, unit):
                         D.line((pre[0]*unit, pre[1]*unit, p[0]*unit, p[1]*unit), fill='black', width=1)
                         pre = p
 def DrawTown(im):
-        sf=shapefile.Reader("town/Town_MOI_1041215.shp")
+        sf=shapefile.Reader("base_town_cut/base_tw_cut.shp")
         shapes=sf.shapes()
 
         unit, col, row=5, 200, 360
