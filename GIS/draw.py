@@ -2,7 +2,7 @@ import os
 import Image, ImageDraw
 import draw_town as town
 
-def Create_draw(path,Dir):
+def Create_draw(path,Dir, low):
 	with open(path) as file:
 		lines=file.read().splitlines()
 
@@ -49,7 +49,7 @@ def Create_draw(path,Dir):
 			else:
 				color=colorRamp[temp+1]
 			D.rectangle((X,Y,X+unit,Y+unit), fill=color)"""
-			if temp <= 500:
+			if temp <= low*100:
 				D.rectangle((X,Y,X+unit,Y+unit), fill=colorRamp['min'])
 			X=X+unit
 		Y=Y+unit

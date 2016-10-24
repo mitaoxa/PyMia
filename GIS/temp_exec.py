@@ -14,8 +14,9 @@ def Browse():
 	Dir_parent=os.path.dirname(paths[0])
 	e1.delete(0, END)
 	e1.insert(0, Dir_parent)
-	DirSave=os.path.join(Dir_parent, 'pic')
-	Dirshp=os.path.join(Dir_parent, 'shapefile')
+	lowerbound=0   #############################change here
+	DirSave=os.path.join(Dir_parent, 'pic_'+str(lowerbound))
+	Dirshp=os.path.join(Dir_parent, 'shapefile_'+str(lowerbound))
 	if not os.path.exists(DirSave):
 		os.makedirs(DirSave)
 	if not os.path.exists(Dirshp):
@@ -23,17 +24,16 @@ def Browse():
 	print DirSave
 	unit, row, col= 5, 360, 200 #5, 360, 200
 	im=Image.new('RGBA', (unit*col,unit*row))
-	lowerbound=15
 	for p in paths:
+		#print 'finish draw, and start shp'
+		#shp.Create_shp(p, Dirshp, lowerbound)
+	
 		#print 'start draw',p
-		draw.Create_draw(p, DirSave)
+		#draw.Create_draw(p, DirSave, lowerbound)
 		draw.Combine_draw(p, im, lowerbound)
 	base=Image.open("base.png")
 	im.paste(base, (1*unit,1*unit), base)
 	im.save(str(lowerbound)+".png")
-
-	#	print 'finish draw, and start shp'
-	#	shp.Create_shp(p, Dirshp)
 	Exit=tkMessageBox.askyesno("Loaction", 'Result: \n'+DirSave+'\n\nclick Yes to Exit')
 	if Exit:
 		win.quit()

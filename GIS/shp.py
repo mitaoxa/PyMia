@@ -2,7 +2,7 @@ import os
 import shapefile as shp
 
 
-def Create_shp(path, Dir):
+def Create_shp(path, Dir, low):
 	with open(path) as file:
 		    lines=file.read().splitlines()
 
@@ -35,7 +35,7 @@ def Create_shp(path, Dir):
 	for key,value in point.iteritems():
 		    ps=value.split()
 		    for p in ps:
-		            if p != empty[0]:
+		            if p != empty[0] and int(round(float(p)*100)) <= low*100:
 		                    #left up -> right up -> right down -> left down
 		                    loc=[LONG, LAT]
 		                    LU=[LONG-0.005, LAT+0.005]
@@ -60,4 +60,3 @@ def Create_shp(path, Dir):
 	w.save(path_shp)
 
 	print 'output file ',path_shp
-
