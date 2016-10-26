@@ -14,7 +14,7 @@ def Browse():
 	Dir_parent=os.path.dirname(paths[0])
 	e1.delete(0, END)
 	e1.insert(0, Dir_parent)
-	lowerbound=0   #############################change here
+	lowerbound=15   #############################change here
 	DirSave=os.path.join(Dir_parent, 'pic_'+str(lowerbound))
 	Dirshp=os.path.join(Dir_parent, 'shapefile_'+str(lowerbound))
 	if not os.path.exists(DirSave):
@@ -24,13 +24,18 @@ def Browse():
 	print DirSave
 	unit, row, col= 5, 360, 200 #5, 360, 200
 	im=Image.new('RGBA', (unit*col,unit*row))
+	result={}
 	for p in paths:
 		#print 'finish draw, and start shp'
 		#shp.Create_shp(p, Dirshp, lowerbound)
+		shp.CombineShp(p, lowerbound, result)
 	
 		#print 'start draw',p
 		#draw.Create_draw(p, DirSave, lowerbound)
-		draw.Combine_draw(p, im, lowerbound)
+		#draw.Combine_draw(p, im, lowerbound)
+	savePath=os.path.join(Dirshp,'Combine_temp_'+str(lowerbound)+'.shp')
+	print 'result: ',len(result)
+	shp.outputShp(result, savePath)
 	base=Image.open("base_cut.png")
 	base_500=Image.open("500m.png")
 	im.paste((0, 0, 0, 0), (1*unit, 1*unit), base_500)
