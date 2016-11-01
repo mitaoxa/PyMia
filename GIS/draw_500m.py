@@ -21,4 +21,4 @@ with open(path, 'r') as file:
 		X, Y = float(d.X)-120.0, 25.47-float(d.Y)
 		D.rectangle((X*unit, Y*unit, (X+distX)*unit, (Y+distY)*unit), fill='white')
 		#print d.Z		
-im.save("500m.png")
+im.save("1000m.png")
